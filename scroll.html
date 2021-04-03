@@ -1,0 +1,100 @@
+<html>
+<body>
+</body>
+<script>
+const max=1000;
+for(let i=0; i< max; i++) {
+   const el = document.createElement('p');
+   el.innerText = "Thing " + i;
+   el.style['margin-right'] = 90-Math.random()*20 + '%';
+   el.style['background-color'] = "rgba(0,0,0," + Math.random() + ")";
+   document.body.appendChild(el);
+}
+
+const stopVelocity = 0.0001;
+const userScrollThreshold = 1;
+const decayRate = 0.007;
+const velocityDecayHalfLife = 500; // ms
+
+function addEvent(type, fn) {
+    window.addEventListener(type, fn, false);
+}
+
+let prevWheel = {e:null};
+let velocity = 0;
+addEvent('wheel', function(event) {
+   const now = Date.now();
+   if (prevWheel.e) {
+      const deltaT = now - prevWheel.t;
+      if (velocity == 0) {
+         start();
+      }
+      velocity = prevWheel.e.deltaY / deltaT;
+   }
+   prevWheel.e = event;
+   prevWheel.t = now;
+});
+
+let lastTime = null;
+let prev = {y: 0, t: Date.now()}
+
+function start() {
+   prev.t = Date.now();
+   window.requestAnimationFrame(step);
+}
+
+function step() {
+   const now = Date.now();
+   const deltaT = now - prev.t;
+   const userScroll = Math.abs(window.scrollY - prev.y);
+   prev.y = window.scrollY; 
+   prev.velocity = velocity;
+
+   if (prev.t) {
+      velocity = slower(velocity, deltaT);
+   }
+
+   lastTime = now;
+   if (Math.abs(velocity) < stopVelocity) {
+      velocity = 0;
+      return;
+   }
+
+   if (userScroll < userScrollThreshold) {
+      const scrollPix = scrollMe(velocity, deltaT);
+      console.log("Velocity: %.2f  PrevVelocity: %.2f  userScroll: %.2f, scrollPix: %.2f",
+         velocity, prev.velocity, userScroll, scrollPix);
+      prev.y -= scrollPix;
+   } else { 
+      console.log("User is scrolling");
+   }
+
+   window.requestAnimationFrame(step);
+   prev.t = now;
+}
+
+
+
+let scrollBuffer = 0;
+function scrollMe(v, deltaT) {
+   scrollBuffer += v * deltaT;
+   // buffer tiny scroll operations till they are > 1 px of movement
+   if (Math.abs(scrollBuffer) < 1) {
+      return 0;
+   }
+
+   const scrollPix = Math.round(scrollBuffer);
+   window.scrollBy(0, scrollPix);
+   scrollBuffer = scrollBuffer - scrollPix;
+   return scrollPix
+}
+
+function slower(v, deltaT) {
+   const deltaV = deltaT * decayRate;
+   const deltaVClamped = Math.min(Math.abs(v), deltaV);
+   const exponentialDecayFactor = Math.pow(0.5, deltaT/velocityDecayHalfLife);
+   //console.log(deltaT, velocityDecayHalfLife, exponentialDecayFactor);
+   return (v - Math.sign(v) * deltaVClamped) * exponentialDecayFactor;
+}
+
+</script>
