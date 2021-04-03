@@ -13,8 +13,8 @@ for(let i=0; i< max; i++) {
 
 const stopVelocity = 0.0001;
 const userScrollThreshold = 1;
-const decayRate = 0.007;
-const velocityDecayHalfLife = 500; // ms
+const friction = 0.003;
+const velocityHalfLife = 300; // ms
 
 function addEvent(type, fn) {
     window.addEventListener(type, fn, false);
@@ -40,6 +40,7 @@ let prev = {y: 0, t: Date.now()}
 
 function start() {
    prev.t = Date.now();
+   prev.y = window.scrollY;
    window.requestAnimationFrame(step);
 }
 
@@ -47,12 +48,11 @@ function step() {
    const now = Date.now();
    const deltaT = now - prev.t;
    const userScroll = Math.abs(window.scrollY - prev.y);
-   prev.y = window.scrollY; 
+   prev.y = window.scrollY;
+   prev.t = now;
    prev.velocity = velocity;
 
-   if (prev.t) {
-      velocity = slower(velocity, deltaT);
-   }
+   velocity = slower(velocity, deltaT);
 
    lastTime = now;
    if (Math.abs(velocity) < stopVelocity) {
@@ -64,13 +64,12 @@ function step() {
       const scrollPix = scrollMe(velocity, deltaT);
       console.log("Velocity: %.2f  PrevVelocity: %.2f  userScroll: %.2f, scrollPix: %.2f",
          velocity, prev.velocity, userScroll, scrollPix);
-      prev.y -= scrollPix;
-   } else { 
+      prev.y += scrollPix;
+   } else {
       console.log("User is scrolling");
    }
 
    window.requestAnimationFrame(step);
-   prev.t = now;
 }
 
 
@@ -90,11 +89,13 @@ function scrollMe(v, deltaT) {
 }
 
 function slower(v, deltaT) {
-   const deltaV = deltaT * decayRate;
+   if (deltaT == 0) {
+      return v;
+   }
+   const deltaV = deltaT * friction;
    const deltaVClamped = Math.min(Math.abs(v), deltaV);
-   const exponentialDecayFactor = Math.pow(0.5, deltaT/velocityDecayHalfLife);
-   //console.log(deltaT, velocityDecayHalfLife, exponentialDecayFactor);
-   return (v - Math.sign(v) * deltaVClamped) * exponentialDecayFactor;
+   const exponentialDecayFactor = Math.pow(2, -deltaT/velocityHalfLife);
+   return (v - Math.sign(v) * deltaVClamped)* exponentialDecayFactor;
 }
 
 </script>
