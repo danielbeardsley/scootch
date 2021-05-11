@@ -27,6 +27,9 @@ addEvent('wheel', function(event) {
    const now = Date.now();
    if (prevWheel.e) {
       const deltaT = now - prevWheel.t;
+      if (!deltaT) {
+         return;
+      }
       if (velocity == 0) {
          start();
       }
