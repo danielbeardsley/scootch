@@ -7,6 +7,7 @@ for(let i=0; i< max; i++) {
    const el = document.createElement('p');
    el.innerText = "Thing " + i;
    el.style['margin-right'] = 90-Math.random()*20 + '%';
+   el.style['padding-bottom'] = 80-Math.random()*80 + 'px';
    el.style['background-color'] = "rgba(0,0,0," + Math.random() + ")";
    document.body.appendChild(el);
 }
