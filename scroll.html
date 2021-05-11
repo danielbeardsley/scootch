@@ -63,17 +63,19 @@ function step() {
 
    if (userScroll < userScrollThreshold) {
       const scrollPix = scrollMe(velocity, deltaT);
-      console.log("Velocity: %.2f  PrevVelocity: %.2f  userScroll: %.2f, scrollPix: %.2f",
-         velocity, prev.velocity, userScroll, scrollPix);
+      if (window.scrollDebug) {
+         console.log("Velocity: %.2f  PrevVelocity: %.2f  userScroll: %.2f, scrollPix: %.2f",
+            velocity, prev.velocity, userScroll, scrollPix);
+      }
       prev.y += scrollPix;
    } else {
-      console.log("User is scrolling");
+      if (window.scrollDebug) {
+         console.log("User is scrolling");
+      }
    }
 
    window.requestAnimationFrame(step);
 }
-
-
 
 let scrollBuffer = 0;
 function scrollMe(v, deltaT) {
